@@ -244,7 +244,7 @@ spring:
 
 ## License
 
-MIT License
+No License
 
 ---
 
