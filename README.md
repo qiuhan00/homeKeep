@@ -17,12 +17,23 @@
 ## 功能特性
 
 ### 核心功能
+- **首页仪表盘** - 库存统计面板，总览家庭物品状态
 - **家庭共享** - 创建/加入家庭，多成员协同管理
 - **物品管理** - 添加、编辑、删除物品，支持拍照上传
+- **快速补货** - 一键补全所有低库存物品
 - **位置追踪** - 记录物品存放位置，快速查找
 - **低量提醒** - 物品库存不足时自动提醒
 - **过期提醒** - 支持设置有效期，提前预警即将过期物品
-- **购物清单** - 一键生成采购清单，按分类显示
+- **购物清单** - 按需生成采购清单，支持批量已购
+
+### 采购管理
+- **采购记录** - 记一笔采购，关联物品自动更新库存
+- **历史查询** - 按日期分组查看历史采购记录
+- **智能统计** - 自动计算消费金额
+
+### 数据分析
+- **消耗趋势** - 展示物品日均消耗，预测补货时间
+- **物品分布图** - 饼图展示各位置物品分布
 
 ### 物品分类
 - **分类管理** - 预定义分类（厨房、洗漱、食品、日用、药品、护肤、其他）
@@ -69,23 +80,23 @@ homekeep/
 │   └── src/main/java/com/homekeep/
 │       ├── controller/         # REST API 控制器
 │       ├── service/           # 业务逻辑层
-│       ├── repository/         # 数据访问层
-│       ├── entity/             # JPA 实体
-│       ├── dto/                # 数据传输对象
-│       ├── config/             # 配置类
-│       ├── security/           # 安全认证
-│       └── websocket/          # WebSocket 处理
+│       ├── repository/        # 数据访问层
+│       ├── entity/            # JPA 实体
+│       ├── dto/               # 数据传输对象
+│       ├── config/           # 配置类
+│       ├── security/         # 安全认证
+│       └── websocket/        # WebSocket 处理
 │
-├── frontend/                   # React 前端
+├── frontend/                  # React 前端
 │   └── src/
-│       ├── components/         # 可复用组件
-│       ├── pages/              # 页面组件
-│       ├── services/           # API 服务
-│       ├── stores/             # Zustand 状态
-│       └── types/              # TypeScript 类型
+│       ├── components/        # 可复用组件
+│       ├── pages/            # 页面组件
+│       ├── services/         # API 服务
+│       ├── stores/           # Zustand 状态
+│       └── types/            # TypeScript 类型
 │
-├── docker-compose.yml          # Docker 编排
-├── Dockerfile                  # 后端镜像构建
+├── docker-compose.yml         # Docker 编排
+├── Dockerfile               # 后端镜像构建
 └── README.md
 ```
 
@@ -101,8 +112,8 @@ homekeep/
 
 ### 1. 克隆项目
 ```bash
-git clone <repository-url>
-cd homekeep
+git clone https://github.com/qiuhan00/homeKeep.git
+cd homeKeep
 ```
 
 ### 2. 配置数据库
@@ -168,8 +179,10 @@ docker-compose up -d
 | POST | /api/families/join | 加入家庭 |
 | GET | /api/families | 获取用户家庭列表 |
 | GET | /api/families/{id} | 获取家庭详情 |
+| PUT | /api/families/{id} | 更新家庭信息 |
 | DELETE | /api/families/{id} | 删除家庭 |
 | GET | /api/families/{id}/members | 获取成员列表 |
+| GET | /api/families/{id}/members/{userId} | 获取成员详情 |
 | PUT | /api/families/{id}/members/{userId}/permissions | 更新成员权限 |
 | DELETE | /api/families/{id}/members/{userId} | 移除成员 |
 | POST | /api/families/{id}/leave | 退出家庭 |
@@ -183,39 +196,74 @@ docker-compose up -d
 | PUT | /api/families/{familyId}/items/{id} | 更新物品 |
 | DELETE | /api/families/{familyId}/items/{id} | 删除物品 |
 | GET | /api/families/{familyId}/items/search | 搜索物品 |
-| GET | /api/families/{familyId}/items/low-stock | 获取低量物品 |
+| GET | /api/families/{familyId}/items/low-stock | 获取低库存物品 |
+| GET | /api/families/{familyId}/items/used-up | 获取已用完物品 |
 | GET | /api/families/{familyId}/items/expiring | 获取即将过期物品 |
+| GET | /api/families/{familyId}/items/stats/dashboard | 获取仪表盘统计 |
 | POST | /api/families/{familyId}/items/{id}/adjust | 调整数量 |
+| POST | /api/families/{familyId}/items/restock-all | 一键补货 |
+
+### 位置
+| 方法 | 路径 | 说明 |
+|:---|:---|:---|
+| POST | /api/families/{familyId}/locations | 创建位置 |
+| GET | /api/families/{familyId}/locations | 获取位置列表 |
+| GET | /api/families/{familyId}/locations/root | 获取顶层位置 |
+| GET | /api/families/{familyId}/locations/{id}/children | 获取子位置 |
+| DELETE | /api/families/{familyId}/locations/{id} | 删除位置 |
+
+### 采购记录
+| 方法 | 路径 | 说明 |
+|:---|:---|:---|
+| GET | /api/families/{familyId}/purchases | 获取采购历史 |
+| GET | /api/families/{familyId}/purchases/{id} | 获取采购详情 |
+| POST | /api/families/{familyId}/purchases | 创建采购记录 |
+| DELETE | /api/families/{familyId}/purchases/{id} | 删除采购记录 |
+
+### 数据分析
+| 方法 | 路径 | 说明 |
+|:---|:---|:---|
+| GET | /api/families/{familyId}/trends | 获取所有物品消耗趋势 |
+| GET | /api/families/{familyId}/trends/items/{itemId} | 获取指定物品消耗趋势 |
+| GET | /api/families/{familyId}/distribution | 获取物品位置分布 |
 
 ---
 
 ## 页面预览
 
-### 首页
-- 欢迎信息与家庭选择
-- 快速操作入口（添加物品、管理家庭）
-- 待补充物品列表
-- 已用完物品列表
-- 即将过期物品提醒
+### 首页仪表盘
+- 库存统计面板（总物品数、低库存数、即将过期数、已用完数）
+- 快速补货按钮
+- 待补充/已用完/即将过期物品列表
 
 ### 物品管理
-- 物品网格/列表展示
-- 分类筛选
-- 搜索功能
-- 批量删除
-
-### 添加/编辑物品
-- 名称、描述
-- 数量、最低数量
-- 分类、标签
-- 存放位置
-- 有效期、提前提醒天数
-- 物品图片（支持拍照）
+- 物品网格展示（图片、名称、位置、标签）
+- 过期时间标签
+- 快捷删除按钮
+- 分类筛选、搜索功能
 
 ### 购物清单
 - 按分类分组显示
 - 勾选已购物品
+- 支持手动输入购买数量
+- 批量已购功能
 - 一键复制清单
+
+### 采购历史
+- 按日期分组展示
+- 记一笔采购（选择物品、数量、金额）
+- 查看历史消费
+
+### 消耗趋势
+- 物品日均消耗统计
+- 预计补货日期
+- 7天消耗柱状图
+- 按急需补货排序
+
+### 物品分布
+- 饼图展示位置分布
+- 位置列表视图
+- 点击查看位置内物品详情
 
 ---
 

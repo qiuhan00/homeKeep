@@ -23,12 +23,24 @@ public class ConsumptionTrendService {
     private final ItemRepository itemRepository;
     private final FamilyMemberRepository familyMemberRepository;
 
+    /**
+     * 校验用户是否为家庭成员
+     * @param familyId 家庭ID
+     * @param userId 用户ID
+     * @throws RuntimeException 用户不是家庭成员时抛出异常
+     */
     public void validateFamilyAccess(Long familyId, Long userId) {
         if (!familyMemberRepository.existsByFamilyIdAndUserId(familyId, userId)) {
             throw new RuntimeException("您不是该家庭的成员");
         }
     }
 
+    /**
+     * 获取家庭所有物品的消耗趋势
+     * @param familyId 家庭ID
+     * @param userId 用户ID
+     * @return 包含日均消耗、预计补货日期、最近7天消耗等趋势数据
+     */
     public List<ConsumptionTrendDTO> getAllTrends(Long familyId, Long userId) {
         validateFamilyAccess(familyId, userId);
 
@@ -99,6 +111,13 @@ public class ConsumptionTrendService {
         }).collect(Collectors.toList());
     }
 
+    /**
+     * 获取指定物品的消耗趋势
+     * @param familyId 家庭ID
+     * @param itemId 物品ID
+     * @param userId 用户ID
+     * @return 该物品的详细消耗趋势数据；物品不存在时抛出异常
+     */
     public ConsumptionTrendDTO getItemTrend(Long familyId, Long itemId, Long userId) {
         validateFamilyAccess(familyId, userId);
 

@@ -17,12 +17,24 @@ public class LocationDistributionService {
     private final ItemRepository itemRepository;
     private final FamilyMemberRepository familyMemberRepository;
 
+    /**
+     * 校验用户是否为家庭成员
+     * @param familyId 家庭ID
+     * @param userId 用户ID
+     * @throws RuntimeException 用户不是家庭成员时抛出异常
+     */
     public void validateFamilyAccess(Long familyId, Long userId) {
         if (!familyMemberRepository.existsByFamilyIdAndUserId(familyId, userId)) {
             throw new RuntimeException("您不是该家庭的成员");
         }
     }
 
+    /**
+     * 获取物品的位置分布统计
+     * @param familyId 家庭ID
+     * @param userId 用户ID
+     * @return 按位置分组的物品分布列表，包含每个位置的物品数量、占比和物品摘要
+     */
     public List<LocationDistributionDTO> getDistribution(Long familyId, Long userId) {
         validateFamilyAccess(familyId, userId);
 

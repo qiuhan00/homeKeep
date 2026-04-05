@@ -20,6 +20,11 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final KickNotificationHandler kickNotificationHandler;
 
+    /**
+     * 用户注册
+     * @param request 注册请求，包含手机号、密码和昵称
+     * @return 注册成功返回token和用户信息，失败抛出异常
+     */
     @Transactional
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByPhone(request.getPhone())) {
@@ -37,6 +42,11 @@ public class AuthService {
         return new AuthResponse(token, UserDTO.fromEntity(user));
     }
 
+    /**
+     * 用户登录
+     * @param request 登录请求，包含手机号和密码
+     * @return 登录成功返回token和用户信息，失败抛出异常；同一用户在其他设备登录会被踢出
+     */
     @Transactional
     public AuthResponse login(LoginRequest request) {
         User user = userRepository.findByPhone(request.getPhone())

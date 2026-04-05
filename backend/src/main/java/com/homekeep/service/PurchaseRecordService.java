@@ -29,12 +29,24 @@ public class PurchaseRecordService {
     private final FamilyMemberRepository familyMemberRepository;
     private final ObjectMapper objectMapper;
 
+    /**
+     * 校验用户是否为家庭成员
+     * @param familyId 家庭ID
+     * @param user 当前用户
+     * @throws BusinessException 用户不是家庭成员时抛出异常
+     */
     public void validateFamilyAccess(Long familyId, User user) {
         if (!familyMemberRepository.existsByFamilyIdAndUserId(familyId, user.getId())) {
             throw new BusinessException("您不是该家庭的成员");
         }
     }
 
+    /**
+     * 获取家庭的购买记录历史
+     * @param familyId 家庭ID
+     * @param user 当前用户
+     * @return 按购买日期降序排列的购买记录列表
+     */
     public List<PurchaseRecordDTO> getPurchaseHistory(Long familyId, User user) {
         validateFamilyAccess(familyId, user);
         List<PurchaseRecord> records = purchaseRecordRepository.findByFamilyIdOrderByPurchaseDateDesc(familyId);
@@ -46,6 +58,13 @@ public class PurchaseRecordService {
         }).collect(Collectors.toList());
     }
 
+    /**
+     * 获取指定购买记录的详细信息
+     * @param familyId 家庭ID
+     * @param purchaseId 购买记录ID
+     * @param user 当前用户
+     * @return 购买记录详细信息；记录不存在时抛出异常
+     */
     public PurchaseRecordDTO getPurchaseById(Long familyId, Long purchaseId, User user) {
         validateFamilyAccess(familyId, user);
         PurchaseRecord record = purchaseRecordRepository.findById(purchaseId)
@@ -56,6 +75,13 @@ public class PurchaseRecordService {
         return dto;
     }
 
+    /**
+     * 创建购买记录并更新物品库存
+     * @param familyId 家庭ID
+     * @param user 当前用户（购买者）
+     * @param request 创建请求，包含购买日期、购买物品列表和备注
+     * @return 创建的购买记录信息；自动计算总金额并更新相关物品的库存数量
+     */
     @Transactional
     public PurchaseRecordDTO createPurchase(Long familyId, User user, CreatePurchaseRequest request) {
         validateFamilyAccess(familyId, user);
@@ -102,6 +128,13 @@ public class PurchaseRecordService {
         return dto;
     }
 
+    /**
+     * 删除购买记录
+     * @param familyId 家庭ID
+     * @param purchaseId 购买记录ID
+     * @param user 当前用户
+     * @throws BusinessException 记录不存在时抛出异常
+     */
     @Transactional
     public void deletePurchase(Long familyId, Long purchaseId, User user) {
         validateFamilyAccess(familyId, user);

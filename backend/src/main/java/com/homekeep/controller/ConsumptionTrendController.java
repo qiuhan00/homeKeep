@@ -18,6 +18,12 @@ public class ConsumptionTrendController {
 
     private final ConsumptionTrendService consumptionTrendService;
 
+    /**
+     * 获取家庭所有物品的消耗趋势
+     * @param familyId 家庭ID
+     * @param user 当前登录用户
+     * @return 所有物品的消耗趋势列表
+     */
     @GetMapping
     public ResponseEntity<ApiResponse<List<ConsumptionTrendDTO>>> getAllTrends(
             @PathVariable Long familyId,
@@ -26,6 +32,13 @@ public class ConsumptionTrendController {
                 consumptionTrendService.getAllTrends(familyId, user.getId())));
     }
 
+    /**
+     * 获取指定物品的消耗趋势
+     * @param familyId 家庭ID
+     * @param itemId 物品ID
+     * @param user 当前登录用户
+     * @return 物品的消耗趋势信息
+     */
     @GetMapping("/items/{itemId}")
     public ResponseEntity<ApiResponse<ConsumptionTrendDTO>> getItemTrend(
             @PathVariable Long familyId,

@@ -20,6 +20,12 @@ public class PurchaseRecordController {
 
     private final PurchaseRecordService purchaseRecordService;
 
+    /**
+     * 获取购买历史记录
+     * @param familyId 家庭ID
+     * @param user 当前登录用户
+     * @return 购买记录列表
+     */
     @GetMapping
     public ResponseEntity<ApiResponse<List<PurchaseRecordDTO>>> getPurchaseHistory(
             @PathVariable Long familyId,
@@ -28,6 +34,13 @@ public class PurchaseRecordController {
                 purchaseRecordService.getPurchaseHistory(familyId, user)));
     }
 
+    /**
+     * 获取指定购买记录详情
+     * @param familyId 家庭ID
+     * @param purchaseId 购买记录ID
+     * @param user 当前登录用户
+     * @return 购买记录详细信息
+     */
     @GetMapping("/{purchaseId}")
     public ResponseEntity<ApiResponse<PurchaseRecordDTO>> getPurchaseById(
             @PathVariable Long familyId,
@@ -37,6 +50,13 @@ public class PurchaseRecordController {
                 purchaseRecordService.getPurchaseById(familyId, purchaseId, user)));
     }
 
+    /**
+     * 创建购买记录
+     * @param familyId 家庭ID
+     * @param user 当前登录用户
+     * @param request 购买记录请求，包含物品ID、购买数量等信息
+     * @return 创建的购买记录信息
+     */
     @PostMapping
     public ResponseEntity<ApiResponse<PurchaseRecordDTO>> createPurchase(
             @PathVariable Long familyId,
@@ -46,6 +66,13 @@ public class PurchaseRecordController {
                 purchaseRecordService.createPurchase(familyId, user, request)));
     }
 
+    /**
+     * 删除购买记录
+     * @param familyId 家庭ID
+     * @param purchaseId 购买记录ID
+     * @param user 当前登录用户
+     * @return 操作结果
+     */
     @DeleteMapping("/{purchaseId}")
     public ResponseEntity<ApiResponse<Void>> deletePurchase(
             @PathVariable Long familyId,

@@ -22,6 +22,11 @@ public class ImageController {
     @Value("${upload.path:uploads}")
     private String uploadPath;
 
+    /**
+     * 上传图片
+     * @param file 上传的图片文件，支持 PNG、JPG、GIF 等格式
+     * @return 上传成功后的图片访问路径
+     */
     @PostMapping("/upload")
     public ResponseEntity<ApiResponse<String>> uploadImage(@RequestParam("file") MultipartFile file) {
         if (file.isEmpty()) {
@@ -64,6 +69,11 @@ public class ImageController {
         }
     }
 
+    /**
+     * 获取图片
+     * @param filename 图片文件名（UUID + 扩展名）
+     * @return 图片二进制数据
+     */
     @GetMapping("/{filename}")
     public ResponseEntity<byte[]> getImage(@PathVariable String filename) {
         try {

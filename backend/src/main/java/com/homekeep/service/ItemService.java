@@ -29,12 +29,25 @@ public class ItemService {
     private final UserRepository userRepository;
     private final FamilyMemberRepository familyMemberRepository;
 
+    /**
+     * 校验用户是否为家庭成员
+     * @param familyId 家庭ID
+     * @param user 当前用户
+     * @throws BusinessException 用户不是家庭成员时抛出异常
+     */
     public void validateFamilyAccess(Long familyId, User user) {
         if (!familyMemberRepository.existsByFamilyIdAndUserId(familyId, user.getId())) {
             throw new BusinessException("您不是该家庭的成员");
         }
     }
 
+    /**
+     * 创建新物品
+     * @param familyId 家庭ID
+     * @param user 当前用户
+     * @param request 创建请求，包含物品名称、描述、数量、位置等信息
+     * @return 创建成功的物品信息
+     */
     @Transactional
     public ItemDTO createItem(Long familyId, User user, CreateItemRequest request) {
         validateFamilyAccess(familyId, user);
@@ -64,6 +77,12 @@ public class ItemService {
         return dto;
     }
 
+    /**
+     * 获取家庭的所有物品列表
+     * @param familyId 家庭ID
+     * @param user 当前用户
+     * @return 物品列表，包含创建者昵称
+     */
     public List<ItemDTO> getItems(Long familyId, User user) {
         validateFamilyAccess(familyId, user);
         List<Item> items = itemRepository.findByFamilyIdAndIsDeletedFalse(familyId);
@@ -75,6 +94,13 @@ public class ItemService {
         }).collect(Collectors.toList());
     }
 
+    /**
+     * 获取指定物品的详细信息
+     * @param familyId 家庭ID
+     * @param itemId 物品ID
+     * @param user 当前用户
+     * @return 物品详细信息；物品不存在时抛出异常
+     */
     public ItemDTO getItem(Long familyId, Long itemId, User user) {
         validateFamilyAccess(familyId, user);
         Item item = itemRepository.findByIdAndFamilyIdAndIsDeletedFalse(itemId, familyId)
@@ -85,6 +111,14 @@ public class ItemService {
         return dto;
     }
 
+    /**
+     * 更新物品信息
+     * @param familyId 家庭ID
+     * @param itemId 物品ID
+     * @param user 当前用户
+     * @param request 更新请求，包含要更新的字段
+     * @return 更新后的物品信息；物品不存在时抛出异常
+     */
     @Transactional
     public ItemDTO updateItem(Long familyId, Long itemId, User user, UpdateItemRequest request) {
         validateFamilyAccess(familyId, user);
@@ -115,6 +149,13 @@ public class ItemService {
         return dto;
     }
 
+    /**
+     * 删除物品（软删除）
+     * @param familyId 家庭ID
+     * @param itemId 物品ID
+     * @param user 当前用户
+     * @throws BusinessException 物品不存在时抛出异常
+     */
     @Transactional
     public void deleteItem(Long familyId, Long itemId, User user) {
         validateFamilyAccess(familyId, user);
@@ -124,6 +165,13 @@ public class ItemService {
         itemRepository.save(item);
     }
 
+    /**
+     * 搜索物品
+     * @param familyId 家庭ID
+     * @param keyword 搜索关键词
+     * @param user 当前用户
+     * @return 匹配的物品列表
+     */
     public List<ItemDTO> searchItems(Long familyId, String keyword, User user) {
         validateFamilyAccess(familyId, user);
         List<Item> items = itemRepository.searchByKeyword(familyId, keyword);
@@ -139,18 +187,36 @@ public class ItemService {
         }).collect(Collectors.toList());
     }
 
+    /**
+     * 获取库存不足的物品列表
+     * @param familyId 家庭ID
+     * @param user 当前用户
+     * @return 当前数量低于最小数量的物品列表
+     */
     public List<ItemDTO> getLowStockItems(Long familyId, User user) {
         validateFamilyAccess(familyId, user);
         List<Item> items = itemRepository.findLowStockItems(familyId);
         return items.stream().map(ItemDTO::fromEntity).collect(Collectors.toList());
     }
 
+    /**
+     * 获取已用完的物品列表
+     * @param familyId 家庭ID
+     * @param user 当前用户
+     * @return 数量为0的物品列表
+     */
     public List<ItemDTO> getUsedUpItems(Long familyId, User user) {
         validateFamilyAccess(familyId, user);
         List<Item> items = itemRepository.findUsedUpItems(familyId);
         return items.stream().map(ItemDTO::fromEntity).collect(Collectors.toList());
     }
 
+    /**
+     * 获取即将过期的物品列表（7天内）
+     * @param familyId 家庭ID
+     * @param user 当前用户
+     * @return 过期日期在7天内的物品列表
+     */
     public List<ItemDTO> getExpiringItems(Long familyId, User user) {
         validateFamilyAccess(familyId, user);
         LocalDate today = LocalDate.now();
@@ -164,6 +230,12 @@ public class ItemService {
         }).collect(Collectors.toList());
     }
 
+    /**
+     * 获取仪表盘统计数据
+     * @param familyId 家庭ID
+     * @param user 当前用户
+     * @return 包含总数、库存不足数、已用完数、即将过期数等统计信息
+     */
     public DashboardStatsDTO getDashboardStats(Long familyId, User user) {
         validateFamilyAccess(familyId, user);
         List<Item> allItems = itemRepository.findByFamilyIdAndIsDeletedFalse(familyId);
@@ -188,6 +260,12 @@ public class ItemService {
         return stats;
     }
 
+    /**
+     * 一键补货所有库存不足的物品
+     * @param familyId 家庭ID
+     * @param user 当前用户
+     * @return 补货后的物品列表，自动将数量补至最小数量
+     */
     @Transactional
     public List<ItemDTO> restockAllLowStock(Long familyId, User user) {
         validateFamilyAccess(familyId, user);
@@ -206,6 +284,14 @@ public class ItemService {
         return lowStockItems.stream().map(ItemDTO::fromEntity).collect(Collectors.toList());
     }
 
+    /**
+     * 调整物品数量
+     * @param familyId 家庭ID
+     * @param itemId 物品ID
+     * @param delta 数量变化值，正数增加，负数减少
+     * @param user 当前用户
+     * @return 更新后的物品信息；数量为负时抛出异常
+     */
     @Transactional
     public ItemDTO adjustQuantity(Long familyId, Long itemId, int delta, User user) {
         validateFamilyAccess(familyId, user);
@@ -235,6 +321,10 @@ public class ItemService {
         return dto;
     }
 
+    /**
+     * 检查物品是否库存不足，设置告警状态
+     * @param item 物品实体
+     */
     private void checkLowStock(Item item) {
         if (item.getQuantity() <= item.getMinQuantity()) {
             item.setIsAlert(true);

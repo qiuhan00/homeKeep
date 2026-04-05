@@ -18,6 +18,12 @@ public class LocationDistributionController {
 
     private final LocationDistributionService locationDistributionService;
 
+    /**
+     * 获取物品位置分布统计
+     * @param familyId 家庭ID
+     * @param user 当前登录用户
+     * @return 各位置的物品分布列表
+     */
     @GetMapping
     public ResponseEntity<ApiResponse<List<LocationDistributionDTO>>> getDistribution(
             @PathVariable Long familyId,

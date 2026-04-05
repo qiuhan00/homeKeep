@@ -11,6 +11,10 @@ import java.util.Map;
 @RequestMapping("/api")
 public class HealthController {
 
+    /**
+     * 健康检查接口
+     * @return 服务状态
+     */
     @GetMapping("/health")
     public ResponseEntity<Map<String, String>> health() {
         return ResponseEntity.ok(Map.of("status", "UP"));
