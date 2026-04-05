@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { itemApi } from '../services/item';
+import { itemApi, locationApi } from '../services/item';
 import api from '../services/api';
 import { useAuthStore } from '../stores/auth';
 import Combobox from '../components/Combobox';
+import Modal from '../components/Modal';
 import type { Item } from '../types';
 
 const PREDEFINED_CATEGORIES = ['厨房', '洗漱', '食品', '日用', '药品', '护肤', '其他'];
@@ -26,17 +27,51 @@ export default function ItemEditPage() {
   const [minQuantityInput, setMinQuantityInput] = useState('1');
   const [category, setCategory] = useState('');
   const [tags, setTags] = useState('');
-  const [locationName, setLocationName] = useState('');
+  // 位置状态 - 支持层级结构
+  const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null);
+  const [selectedLocationPath, setSelectedLocationPath] = useState('');
   const [coverImageUrl, setCoverImageUrl] = useState('');
   const [customFields, setCustomFields] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
   const [expiryDays, setExpiryDays] = useState(7);
   const [uploadingImage, setUploadingImage] = useState(false);
+  // 新建位置弹窗
+  const [showNewLocation, setShowNewLocation] = useState(false);
+  const [newLocationName, setNewLocationName] = useState('');
+  const [newLocationParentId, setNewLocationParentId] = useState<number | null>(null);
 
   const { data: item, isLoading: itemLoading } = useQuery({
     queryKey: ['item', currentFamilyId, itemId],
     queryFn: () => itemApi.getById(currentFamilyId!, Number(itemId)),
     enabled: !!currentFamilyId && isEditing,
+  });
+
+  // 获取顶层位置
+  const { data: rootLocations = [] } = useQuery({
+    queryKey: ['locations', 'root', currentFamilyId],
+    queryFn: () => locationApi.getRoot(currentFamilyId!),
+    enabled: !!currentFamilyId,
+  });
+
+  // 获取选中位置的子位置
+  const { data: childLocations = [] } = useQuery({
+    queryKey: ['locations', 'children', currentFamilyId, selectedLocationId],
+    queryFn: () => locationApi.getChildren(currentFamilyId!, selectedLocationId!),
+    enabled: !!currentFamilyId && !!selectedLocationId,
+  });
+
+  // 创建位置 mutation
+  const createLocationMutation = useMutation({
+    mutationFn: (data: { name: string; parentId?: number }) =>
+      locationApi.create(currentFamilyId!, data),
+    onSuccess: (newLocation) => {
+      queryClient.invalidateQueries({ queryKey: ['locations', currentFamilyId] });
+      // 选择新创建的位置
+      setSelectedLocationId(newLocation.id);
+      setSelectedLocationPath(newLocation.path);
+      setShowNewLocation(false);
+      setNewLocationName('');
+    },
   });
 
   useEffect(() => {
@@ -49,7 +84,7 @@ export default function ItemEditPage() {
       setMinQuantityInput(String(item.minQuantity));
       setCategory(item.category || '');
       setTags(item.tags || '');
-      setLocationName(item.locationPath || '');
+      setSelectedLocationPath(item.locationPath || '');
       setCoverImageUrl(item.coverImageUrl || '');
       setCustomFields(item.customFields || '');
       setExpiryDate(item.expiryDate || '');
@@ -114,7 +149,7 @@ export default function ItemEditPage() {
       minQuantity,
       category: category || undefined,
       tags: tags || undefined,
-      locationPath: locationName || undefined,
+      locationPath: selectedLocationPath || undefined,
       coverImageUrl: coverImageUrl || undefined,
       customFields: customFields || undefined,
       expiryDate: expiryDate || undefined,
@@ -237,12 +272,101 @@ export default function ItemEditPage() {
         <div className="grid grid-cols-2 gap-2 sm:gap-4">
           <div>
             <label className="label">存放位置</label>
-            <Combobox
-              value={locationName}
-              onChange={setLocationName}
-              options={['厨房', '入户', '主卧', '次卧', '客厅']}
-              placeholder="选择或输入位置"
-            />
+            <div className="space-y-2">
+              {/* 已选位置显示 */}
+              {selectedLocationPath && (
+                <div className="flex items-center justify-between bg-gray-50 px-3 py-2 rounded text-sm">
+                  <span>{selectedLocationPath}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedLocationId(null);
+                      setSelectedLocationPath('');
+                    }}
+                    className="text-gray-400 hover:text-red-500"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+
+              {/* 位置选择下拉 */}
+              {!selectedLocationPath && (
+                <select
+                  className="input text-sm"
+                  value={selectedLocationId || ''}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === '__new__') {
+                      setNewLocationParentId(null);
+                      setNewLocationName('');
+                      setShowNewLocation(true);
+                      return;
+                    }
+                    const id = val ? Number(val) : null;
+                    setSelectedLocationId(id);
+                    if (id) {
+                      const loc = rootLocations.find(l => l.id === id);
+                      setSelectedLocationPath(loc?.path || loc?.name || '');
+                    } else {
+                      setSelectedLocationPath('');
+                    }
+                  }}
+                >
+                  <option value="">选择位置</option>
+                  {rootLocations.map(loc => (
+                    <option key={loc.id} value={loc.id}>{loc.name}</option>
+                  ))}
+                  <option value="__new__">+ 新建位置</option>
+                </select>
+              )}
+
+              {/* 子位置选择 */}
+              {!selectedLocationPath && selectedLocationId && childLocations.length > 0 && (
+                <select
+                  className="input text-sm"
+                  value=""
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === '__new_child__') {
+                      setNewLocationParentId(selectedLocationId);
+                      setNewLocationName('');
+                      setShowNewLocation(true);
+                      return;
+                    }
+                    const id = val ? Number(val) : null;
+                    if (id) {
+                      const loc = childLocations.find(l => l.id === id);
+                      if (loc) {
+                        setSelectedLocationId(loc.id);
+                        setSelectedLocationPath(loc.path);
+                      }
+                    }
+                  }}
+                >
+                  <option value="">选择子位置</option>
+                  {childLocations.map(loc => (
+                    <option key={loc.id} value={loc.id}>{loc.name}</option>
+                  ))}
+                  <option value="__new_child__">+ 在此位置下新建</option>
+                </select>
+              )}
+
+              {/* 新建位置入口 */}
+              {!selectedLocationPath && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNewLocationParentId(null);
+                    setNewLocationName('');
+                    setShowNewLocation(true);
+                  }}
+                  className="text-sm text-primary hover:text-primary-600"
+                >
+                  + 新建顶层位置
+                </button>
+              )}
+            </div>
           </div>
           <div>
             <label className="label">标签</label>
@@ -348,6 +472,63 @@ export default function ItemEditPage() {
           </button>
         </div>
       </form>
+
+      {/* 新建位置弹窗 */}
+      {showNewLocation && (
+        <Modal title="新建位置" onClose={() => setShowNewLocation(false)}>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (newLocationName.trim()) {
+                createLocationMutation.mutate({
+                  name: newLocationName.trim(),
+                  parentId: newLocationParentId || undefined,
+                });
+              }
+            }}
+            className="space-y-4"
+          >
+            {newLocationParentId && (
+              <p className="text-sm text-gray-500">
+                将创建在: {rootLocations.find(l => l.id === newLocationParentId)?.name} 下
+              </p>
+            )}
+            <div>
+              <label className="label">位置名称</label>
+              <input
+                type="text"
+                value={newLocationName}
+                onChange={(e) => setNewLocationName(e.target.value)}
+                className="input"
+                placeholder="例如：客厅"
+                autoFocus
+                required
+              />
+            </div>
+            {createLocationMutation.error && (
+              <p className="text-red-500 text-sm">
+                {(createLocationMutation.error as any).response?.data?.message || '创建失败'}
+              </p>
+            )}
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setShowNewLocation(false)}
+                className="btn-secondary flex-1"
+              >
+                取消
+              </button>
+              <button
+                type="submit"
+                className="btn-primary flex-1"
+                disabled={createLocationMutation.isPending}
+              >
+                {createLocationMutation.isPending ? '创建中...' : '创建'}
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
     </div>
   );
 }
