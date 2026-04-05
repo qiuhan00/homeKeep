@@ -35,8 +35,8 @@ public class Item {
     @Column(nullable = false)
     private Integer quantity = 1;
 
-    @Column(name = "min_quantity", nullable = false)
-    private Integer minQuantity = 1;
+    @Column(name = "min_quantity")
+    private Integer minQuantity;
 
     @Column(name = "location_id")
     private Long locationId;

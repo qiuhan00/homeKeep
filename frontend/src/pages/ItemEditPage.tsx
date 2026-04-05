@@ -21,10 +21,10 @@ export default function ItemEditPage() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [quantity, setQuantity] = useState(1);
-  const [minQuantity, setMinQuantity] = useState(1);
+  const [minQuantity, setMinQuantity] = useState<number | null>(null);
   // 用于临时显示输入值（允许为空）
   const [quantityInput, setQuantityInput] = useState('1');
-  const [minQuantityInput, setMinQuantityInput] = useState('1');
+  const [minQuantityInput, setMinQuantityInput] = useState('');
   const [category, setCategory] = useState('');
   const [tags, setTags] = useState('');
   // 位置状态 - 支持层级结构
@@ -65,7 +65,8 @@ export default function ItemEditPage() {
     mutationFn: (data: { name: string; parentId?: number }) =>
       locationApi.create(currentFamilyId!, data),
     onSuccess: (newLocation) => {
-      queryClient.invalidateQueries({ queryKey: ['locations', currentFamilyId] });
+      // 刷新所有位置相关的查询
+      queryClient.invalidateQueries({ queryKey: ['locations'] });
       // 选择新创建的位置
       setSelectedLocationId(newLocation.id);
       setSelectedLocationPath(newLocation.path);
@@ -79,9 +80,9 @@ export default function ItemEditPage() {
       setName(item.name);
       setDescription(item.description || '');
       setQuantity(item.quantity);
-      setMinQuantity(item.minQuantity);
+      setMinQuantity(item.minQuantity ?? null);
       setQuantityInput(String(item.quantity));
-      setMinQuantityInput(String(item.minQuantity));
+      setMinQuantityInput(item.minQuantity != null ? String(item.minQuantity) : '');
       setCategory(item.category || '');
       setTags(item.tags || '');
       setSelectedLocationPath(item.locationPath || '');
@@ -146,7 +147,7 @@ export default function ItemEditPage() {
       name,
       description: description || undefined,
       quantity,
-      minQuantity,
+      minQuantity: minQuantity ?? undefined,
       category: category || undefined,
       tags: tags || undefined,
       locationPath: selectedLocationPath || undefined,
@@ -230,7 +231,7 @@ export default function ItemEditPage() {
             />
           </div>
           <div>
-            <label className="label">最低数量 *</label>
+            <label className="label">最低数量</label>
             <input
               type="number"
               value={minQuantityInput}
@@ -238,23 +239,30 @@ export default function ItemEditPage() {
                 const val = e.target.value;
                 setMinQuantityInput(val);
                 if (val === '') {
-                  setMinQuantity(1); // 临时值
+                  setMinQuantity(null);
                 } else {
                   const num = parseInt(val);
-                  if (!isNaN(num) && num > 0) {
+                  if (!isNaN(num) && num >= 0) {
                     setMinQuantity(num);
                   }
                 }
               }}
               onBlur={(e) => {
-                // 失焦时确保有效值
-                const val = parseInt(e.target.value) || 1;
-                setMinQuantity(val);
-                setMinQuantityInput(String(val));
+                // 失焦时处理空值
+                const val = e.target.value;
+                if (val === '') {
+                  setMinQuantity(null);
+                } else {
+                  const num = parseInt(val);
+                  if (!isNaN(num) && num >= 0) {
+                    setMinQuantity(num);
+                    setMinQuantityInput(String(num));
+                  }
+                }
               }}
               className="input text-sm"
-              min={1}
-              required
+              min={0}
+              placeholder="留空表示不监控"
             />
           </div>
         </div>

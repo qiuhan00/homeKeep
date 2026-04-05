@@ -84,7 +84,7 @@ public class ItemService {
         item.setName(request.getName());
         item.setDescription(request.getDescription());
         item.setQuantity(request.getQuantity() != null ? request.getQuantity() : 1);
-        item.setMinQuantity(request.getMinQuantity() != null ? request.getMinQuantity() : 1);
+        item.setMinQuantity(request.getMinQuantity());
         item.setLocationId(request.getLocationId());
         item.setLocationPath(request.getLocationPath());
         item.setCategory(request.getCategory());
@@ -356,6 +356,11 @@ public class ItemService {
      * @param item 物品实体
      */
     private void checkLowStock(Item item) {
+        // 如果没有设置最低数量，则不检查低库存
+        if (item.getMinQuantity() == null) {
+            item.setIsAlert(false);
+            return;
+        }
         if (item.getQuantity() <= item.getMinQuantity()) {
             item.setIsAlert(true);
         } else {

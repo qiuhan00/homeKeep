@@ -93,6 +93,23 @@ export default function ItemsPage() {
   const displayItems = searchKeyword ? searchResults : items.filter(i => !i.isDeleted && !i.usedUp);
   const usedUpItems = items.filter(i => !i.isDeleted && i.usedUp);
 
+  // 按位置分组物品
+  const groupedByLocation = displayItems.reduce((acc, item) => {
+    const locationKey = item.locationPath || '未分类';
+    if (!acc[locationKey]) {
+      acc[locationKey] = [];
+    }
+    acc[locationKey].push(item);
+    return acc;
+  }, {} as Record<string, typeof displayItems>);
+
+  // 按位置key排序，未分类放最后
+  const sortedLocationKeys = Object.keys(groupedByLocation).sort((a, b) => {
+    if (a === '未分类') return 1;
+    if (b === '未分类') return -1;
+    return a.localeCompare(b);
+  });
+
   const toggleSelectItem = (itemId: number) => {
     const newSelected = new Set(selectedItems);
     if (newSelected.has(itemId)) {
@@ -234,111 +251,122 @@ export default function ItemsPage() {
               <span className="text-sm text-gray-500">全选</span>
             </div>
           )}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
-            {displayItems.map((item) => (
-              <div
-                key={item.id}
-                className={`card hover:shadow-md transition-shadow relative ${
-                  item.isAlert ? 'ring-2 ring-red-400' : ''
-                } ${selectedItems.has(item.id) ? 'ring-2 ring-primary' : ''}`}
-              >
-                {selectMode && (
+          {/* 按位置分组的物品展示 */}
+          {sortedLocationKeys.map(locationKey => (
+            <div key={locationKey} className="mb-4">
+              <h3 className="font-medium text-sm sm:text-base text-gray-500 mb-2 flex items-center gap-2">
+                <span className="text-lg">📍</span> {locationKey}
+                <span className="text-xs text-gray-400">({groupedByLocation[locationKey].length})</span>
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
+                {groupedByLocation[locationKey].map((item) => (
                   <div
-                    className="absolute top-2 left-2 z-10 cursor-pointer"
-                    onClick={() => toggleSelectItem(item.id)}
+                    key={item.id}
+                    className={`card hover:shadow-md transition-shadow relative ${
+                      item.isAlert ? 'ring-2 ring-red-400' : ''
+                    } ${selectedItems.has(item.id) ? 'ring-2 ring-primary' : ''}`}
                   >
-                    <input
-                      type="checkbox"
-                      checked={selectedItems.has(item.id)}
-                      onChange={() => toggleSelectItem(item.id)}
-                      className="w-4 h-4"
-                    />
-                  </div>
-                )}
-                <Link
-                  to={`/items/${item.id}`}
-                  className="block"
-                >
-                  <div className="bg-gray-100 h-20 sm:h-28 lg:h-32 rounded mb-2 sm:mb-3 flex items-center justify-center overflow-hidden relative">
-                    {item.coverImageUrl ? (
-                      <img src={item.coverImageUrl} alt={item.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-3xl sm:text-4xl">📦</span>
+                    {selectMode && (
+                      <div
+                        className="absolute top-2 left-2 z-10 cursor-pointer"
+                        onClick={() => toggleSelectItem(item.id)}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedItems.has(item.id)}
+                          onChange={() => toggleSelectItem(item.id)}
+                          className="w-4 h-4"
+                        />
+                      </div>
                     )}
-                    {item.expiryDate && (() => {
-                      const today = new Date();
-                      today.setHours(0, 0, 0, 0);
-                      const expiry = new Date(item.expiryDate);
-                      expiry.setHours(0, 0, 0, 0);
-                      const diffDays = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-                      if (diffDays < 0) {
-                        return <span className="absolute bottom-1 right-1 text-xs bg-red-500 text-white px-1.5 py-0.5 rounded">已过期</span>;
-                      } else if (diffDays <= 7) {
-                        return <span className="absolute bottom-1 right-1 text-xs bg-orange-500 text-white px-1.5 py-0.5 rounded">{diffDays}天后过期</span>;
-                      }
-                      return null;
-                    })()}
+                    <Link
+                      to={`/items/${item.id}`}
+                      className="block"
+                    >
+                      <div className="bg-gray-100 h-20 sm:h-28 lg:h-32 rounded mb-2 sm:mb-3 flex items-center justify-center overflow-hidden relative">
+                        {item.coverImageUrl ? (
+                          <img src={item.coverImageUrl} alt={item.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-3xl sm:text-4xl">📦</span>
+                        )}
+                        {item.expiryDate && (() => {
+                          const today = new Date();
+                          today.setHours(0, 0, 0, 0);
+                          const expiry = new Date(item.expiryDate);
+                          expiry.setHours(0, 0, 0, 0);
+                          const diffDays = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                          if (diffDays < 0) {
+                            return <span className="absolute bottom-1 right-1 text-xs bg-red-500 text-white px-1.5 py-0.5 rounded">已过期</span>;
+                          } else if (diffDays <= 7) {
+                            return <span className="absolute bottom-1 right-1 text-xs bg-orange-500 text-white px-1.5 py-0.5 rounded">{diffDays}天后过期</span>;
+                          }
+                          return null;
+                        })()}
+                      </div>
+                      <h3 className="font-medium text-sm sm:text-base truncate">{item.name}</h3>
+                      <p className="text-xs sm:text-sm text-gray-500 truncate">
+                        {item.category || '未分类'}
+                      </p>
+                      {item.tags ? (
+                        <p className="text-xs text-gray-400 truncate mt-0.5 h-4">
+                          {item.tags.split(',').slice(0, 2).map(tag => `#${tag.trim()}`).join(' ')}
+                        </p>
+                      ) : (
+                        <p className="h-4"></p>
+                      )}
+                    </Link>
+                    <div className="flex items-center justify-between mt-1 sm:mt-2">
+                      {!selectMode && canEdit && (
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setDeleteItemId(item.id);
+                          }}
+                          disabled={deleteMutation.isPending}
+                          className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-red-100 hover:bg-red-200 text-red-500 disabled:opacity-50 text-xs flex items-center justify-center"
+                          title="删除"
+                        >
+                          🗑
+                        </button>
+                      )}
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            adjustMutation.mutate({ itemId: item.id, delta: -1 });
+                          }}
+                          disabled={!canEdit || item.quantity <= 0 || adjustMutation.isPending}
+                          className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gray-100 hover:bg-gray-200 disabled:opacity-50 text-xs sm:text-sm font-bold flex items-center justify-center"
+                        >
+                          -
+                        </button>
+                        <span className={`text-xs sm:text-sm min-w-[40px] text-center ${
+                          item.minQuantity != null && item.quantity <= item.minQuantity ? 'text-red-500' : 'text-gray-600'
+                        }`}>
+                          {item.minQuantity != null ? `${item.quantity}/${item.minQuantity}` : item.quantity}
+                        </span>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            adjustMutation.mutate({ itemId: item.id, delta: 1 });
+                          }}
+                          disabled={!canEdit || adjustMutation.isPending}
+                          className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-primary hover:bg-primary-600 text-white disabled:opacity-50 text-xs sm:text-sm font-bold flex items-center justify-center"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                    {item.isAlert && (
+                      <span className="absolute top-2 right-2 text-xs bg-red-100 text-red-600 px-1.5 sm:px-2 py-0.5 rounded">
+                        需补充
+                      </span>
+                    )}
                   </div>
-                  <h3 className="font-medium text-sm sm:text-base truncate">{item.name}</h3>
-                  <p className="text-xs sm:text-sm text-gray-500 truncate">
-                    {item.locationPath || item.category || '未分类'}
-                  </p>
-                  {item.tags ? (
-                    <p className="text-xs text-gray-400 truncate mt-0.5 h-4">
-                      {item.tags.split(',').slice(0, 2).map(tag => `#${tag.trim()}`).join(' ')}
-                    </p>
-                  ) : (
-                    <p className="h-4"></p>
-                  )}
-                </Link>
-                <div className="flex items-center justify-between mt-1 sm:mt-2">
-                  {!selectMode && canEdit && (
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setDeleteItemId(item.id);
-                      }}
-                      disabled={deleteMutation.isPending}
-                      className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-red-100 hover:bg-red-200 text-red-500 disabled:opacity-50 text-xs flex items-center justify-center"
-                      title="删除"
-                    >
-                      🗑
-                    </button>
-                  )}
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        adjustMutation.mutate({ itemId: item.id, delta: -1 });
-                      }}
-                      disabled={!canEdit || item.quantity <= 0 || adjustMutation.isPending}
-                      className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gray-100 hover:bg-gray-200 disabled:opacity-50 text-xs sm:text-sm font-bold flex items-center justify-center"
-                    >
-                      -
-                    </button>
-                    <span className={`text-xs sm:text-sm min-w-[40px] text-center ${item.quantity <= item.minQuantity ? 'text-red-500' : 'text-gray-600'}`}>
-                      {item.quantity}/{item.minQuantity}
-                    </span>
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        adjustMutation.mutate({ itemId: item.id, delta: 1 });
-                      }}
-                      disabled={!canEdit || adjustMutation.isPending}
-                      className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-primary hover:bg-primary-600 text-white disabled:opacity-50 text-xs sm:text-sm font-bold flex items-center justify-center"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-                {item.isAlert && (
-                  <span className="absolute top-2 right-2 text-xs bg-red-100 text-red-600 px-1.5 sm:px-2 py-0.5 rounded">
-                    需补充
-                  </span>
-                )}
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </>
       )}
 
@@ -415,7 +443,7 @@ export default function ItemsPage() {
                     -
                   </button>
                   <span className="text-xs sm:text-sm min-w-[40px] text-center text-gray-400">
-                    0/{item.minQuantity}
+                    {item.minQuantity != null ? `0/${item.minQuantity}` : '0'}
                   </span>
                   <button
                     onClick={(e) => {
