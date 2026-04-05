@@ -1,0 +1,115 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: #5C4033;              /* 深棕色文字 */
+  background-color: #FBF7F2;   /* 暖白背景 */
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-[#E07B39] text-white px-4 py-2 rounded-[10px] font-medium transition-all duration-200;
+    @apply hover:bg-[#C4622A];
+    @apply focus:outline-none focus:ring-2 focus:ring-[#F8A86A] focus:ring-offset-2;
+    @apply text-sm sm:text-base;
+  }
+
+  .btn-primary:hover {
+    box-shadow: 0 4px 12px rgba(224, 123, 57, 0.25);
+  }
+
+  .btn-secondary {
+    @apply text-[#9E4C21] px-4 py-2 rounded-[10px] font-medium transition-all duration-200;
+    background-color: #FFECD4;
+    @apply hover:bg-[#FFE0BC] hover:text-[#783919];
+    @apply focus:outline-none focus:ring-2 focus:ring-[#FFD4A3] focus:ring-offset-2;
+    @apply text-sm sm:text-base;
+  }
+
+  .btn-danger {
+    background-color: #C75D4A;
+    @apply text-white px-4 py-2 rounded-[10px] font-medium transition-colors;
+    @apply hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2;
+    @apply text-sm sm:text-base;
+  }
+
+  .card {
+    @apply bg-white rounded-[16px] p-3 sm:p-4;
+    box-shadow: 0 2px 12px rgba(224, 123, 57, 0.15);
+    @apply border;
+    border-color: #FDEDD8;
+  }
+
+  .input {
+    @apply w-full px-3 py-2 rounded-[10px] bg-white;
+    border: 1px solid #FFECD4;
+    @apply focus:outline-none focus:ring-2 focus:ring-[#FAC78E] focus:border-[#F8A86A];
+    @apply text-sm sm:text-base text-gray-700 placeholder-gray-400;
+  }
+
+  .label {
+    @apply block text-sm font-medium mb-1;
+    color: #9E4C21;
+  }
+}
+
+/* 暖色滚动条 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #FEF5EB;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #FCDAB5;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #F8A86A;
+}
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+  .btn-primary,
+  .btn-secondary,
+  .btn-danger {
+    @apply py-2 px-3;
+  }
+
+  .card {
+    @apply p-3;
+  }
+
+  .input {
+    @apply py-2;
+  }
+}
+
+/* 暖色选中效果 */
+::selection {
+  background-color: #FFE0BC;
+  color: #5C4033;
+}
