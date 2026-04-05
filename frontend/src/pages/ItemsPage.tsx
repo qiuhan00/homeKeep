@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { familyApi } from '../services/family';
 import { itemApi } from '../services/item';
 import { useAuthStore } from '../stores/auth';
+import { usePermission } from '../hooks/usePermission';
 import type { Family } from '../types';
 import ConfirmModal from '../components/ConfirmModal';
 
@@ -15,6 +16,9 @@ export default function ItemsPage() {
   const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
   const [selectMode, setSelectMode] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<'batch' | 'single' | null>(null);
+
+  // 权限检查
+  const { canEdit } = usePermission(selectedFamily);
 
   const { data: families = [], isLoading: familiesLoading } = useQuery({
     queryKey: ['families'],
@@ -133,36 +137,40 @@ export default function ItemsPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          {selectMode ? (
+          {canEdit && (
             <>
-              <button
-                onClick={() => {
-                  setSelectMode(false);
-                  setSelectedItems(new Set());
-                }}
-                className="btn-secondary text-sm"
-              >
-                取消
-              </button>
-              <button
-                onClick={() => setConfirmDelete('batch')}
-                disabled={selectedItems.size === 0}
-                className="btn-danger text-sm disabled:opacity-50"
-              >
-                删除 {selectedItems.size > 0 && `(${selectedItems.size})`}
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                onClick={() => setSelectMode(true)}
-                className="btn-secondary text-sm"
-              >
-                选择
-              </button>
-              <Link to="/items/new" className="btn-primary text-sm">
-                + 添加
-              </Link>
+              {selectMode ? (
+                <>
+                  <button
+                    onClick={() => {
+                      setSelectMode(false);
+                      setSelectedItems(new Set());
+                    }}
+                    className="btn-secondary text-sm"
+                  >
+                    取消
+                  </button>
+                  <button
+                    onClick={() => setConfirmDelete('batch')}
+                    disabled={selectedItems.size === 0}
+                    className="btn-danger text-sm disabled:opacity-50"
+                  >
+                    删除 {selectedItems.size > 0 && `(${selectedItems.size})`}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => setSelectMode(true)}
+                    className="btn-secondary text-sm"
+                  >
+                    选择
+                  </button>
+                  <Link to="/items/new" className="btn-primary text-sm">
+                    + 添加
+                  </Link>
+                </>
+              )}
             </>
           )}
         </div>
@@ -284,7 +292,7 @@ export default function ItemsPage() {
                   )}
                 </Link>
                 <div className="flex items-center justify-between mt-1 sm:mt-2">
-                  {!selectMode && (
+                  {!selectMode && canEdit && (
                     <button
                       onClick={(e) => {
                         e.preventDefault();
@@ -303,7 +311,7 @@ export default function ItemsPage() {
                         e.preventDefault();
                         adjustMutation.mutate({ itemId: item.id, delta: -1 });
                       }}
-                      disabled={item.quantity <= 0 || adjustMutation.isPending}
+                      disabled={!canEdit || item.quantity <= 0 || adjustMutation.isPending}
                       className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gray-100 hover:bg-gray-200 disabled:opacity-50 text-xs sm:text-sm font-bold flex items-center justify-center"
                     >
                       -
@@ -316,7 +324,7 @@ export default function ItemsPage() {
                         e.preventDefault();
                         adjustMutation.mutate({ itemId: item.id, delta: 1 });
                       }}
-                      disabled={adjustMutation.isPending}
+                      disabled={!canEdit || adjustMutation.isPending}
                       className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-primary hover:bg-primary-600 text-white disabled:opacity-50 text-xs sm:text-sm font-bold flex items-center justify-center"
                     >
                       +
@@ -401,7 +409,7 @@ export default function ItemsPage() {
                       e.preventDefault();
                       adjustMutation.mutate({ itemId: item.id, delta: -1 });
                     }}
-                    disabled={adjustMutation.isPending}
+                    disabled={!canEdit || adjustMutation.isPending}
                     className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gray-200 hover:bg-gray-300 disabled:opacity-50 text-xs sm:text-sm font-bold flex items-center justify-center"
                   >
                     -
@@ -414,7 +422,7 @@ export default function ItemsPage() {
                       e.preventDefault();
                       adjustMutation.mutate({ itemId: item.id, delta: 1 });
                     }}
-                    disabled={adjustMutation.isPending}
+                    disabled={!canEdit || adjustMutation.isPending}
                     className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-primary hover:bg-primary-600 text-white disabled:opacity-50 text-xs sm:text-sm font-bold flex items-center justify-center"
                   >
                     +

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { trendApi, LocationDistribution } from '../services/trend';
+import { trendApi } from '../services/trend';
 import { useAuthStore } from '../stores/auth';
 
 const COLORS = [
@@ -91,7 +91,7 @@ export default function DistributionPage() {
 
               {/* 图例 */}
               <div className="flex-1 grid grid-cols-2 gap-2">
-                {pieData.map((item, i) => (
+                {pieData.map((item) => (
                   <div
                     key={item.locationPath}
                     className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-all ${

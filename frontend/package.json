@@ -10,7 +10,9 @@
   },
   "dependencies": {
     "@headlessui/react": "^2.1.2",
+    "@tanstack/query-sync-storage-persister": "^5.96.2",
     "@tanstack/react-query": "^5.51.1",
+    "@tanstack/react-query-persist-client": "^5.96.2",
     "axios": "^1.7.2",
     "dexie": "^4.0.7",
     "dexie-react-hooks": "^1.1.7",

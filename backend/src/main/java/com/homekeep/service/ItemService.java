@@ -42,6 +42,31 @@ public class ItemService {
     }
 
     /**
+     * 获取用户的家庭成员信息
+     * @param familyId 家庭ID
+     * @param user 当前用户
+     * @return 家庭成员实体
+     * @throws BusinessException 用户不是家庭成员时抛出异常
+     */
+    private com.homekeep.entity.FamilyMember getFamilyMember(Long familyId, User user) {
+        return familyMemberRepository.findByFamilyIdAndUserId(familyId, user.getId())
+                .orElseThrow(() -> new BusinessException("您不是该家庭的成员"));
+    }
+
+    /**
+     * 校验用户是否有编辑物品权限
+     * @param familyId 家庭ID
+     * @param user 当前用户
+     * @throws BusinessException 用户没有编辑权限时抛出异常
+     */
+    private void validateEditPermission(Long familyId, User user) {
+        com.homekeep.entity.FamilyMember member = getFamilyMember(familyId, user);
+        if (!member.hasEditPermission()) {
+            throw new BusinessException("您没有编辑物品的权限");
+        }
+    }
+
+    /**
      * 创建新物品
      * @param familyId 家庭ID
      * @param user 当前用户
@@ -51,6 +76,7 @@ public class ItemService {
     @Transactional
     public ItemDTO createItem(Long familyId, User user, CreateItemRequest request) {
         validateFamilyAccess(familyId, user);
+        validateEditPermission(familyId, user);
 
         Item item = new Item();
         item.setFamilyId(familyId);
@@ -122,6 +148,7 @@ public class ItemService {
     @Transactional
     public ItemDTO updateItem(Long familyId, Long itemId, User user, UpdateItemRequest request) {
         validateFamilyAccess(familyId, user);
+        validateEditPermission(familyId, user);
         Item item = itemRepository.findByIdAndFamilyIdAndIsDeletedFalse(itemId, familyId)
                 .orElseThrow(() -> new BusinessException("物品不存在"));
 
@@ -159,6 +186,7 @@ public class ItemService {
     @Transactional
     public void deleteItem(Long familyId, Long itemId, User user) {
         validateFamilyAccess(familyId, user);
+        validateEditPermission(familyId, user);
         Item item = itemRepository.findByIdAndFamilyIdAndIsDeletedFalse(itemId, familyId)
                 .orElseThrow(() -> new BusinessException("物品不存在"));
         item.setIsDeleted(true);
@@ -269,6 +297,7 @@ public class ItemService {
     @Transactional
     public List<ItemDTO> restockAllLowStock(Long familyId, User user) {
         validateFamilyAccess(familyId, user);
+        validateEditPermission(familyId, user);
         List<Item> lowStockItems = itemRepository.findLowStockItems(familyId);
 
         for (Item item : lowStockItems) {
@@ -295,6 +324,7 @@ public class ItemService {
     @Transactional
     public ItemDTO adjustQuantity(Long familyId, Long itemId, int delta, User user) {
         validateFamilyAccess(familyId, user);
+        validateEditPermission(familyId, user);
         Item item = itemRepository.findByIdAndFamilyIdAndIsDeletedFalse(itemId, familyId)
                 .orElseThrow(() -> new BusinessException("物品不存在"));
 

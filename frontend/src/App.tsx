@@ -15,6 +15,7 @@ import PurchaseRecordsPage from './pages/PurchaseRecordsPage';
 import ConsumptionTrendsPage from './pages/ConsumptionTrendsPage';
 import DistributionPage from './pages/DistributionPage';
 import Layout from './components/Layout';
+import OfflineIndicator from './components/OfflineIndicator';
 
 function App() {
   const { token, kickedMessage } = useAuthStore();
@@ -80,6 +81,7 @@ function App() {
           }
         />
       </Routes>
+      <OfflineIndicator />
     </BrowserRouter>
   );
 }

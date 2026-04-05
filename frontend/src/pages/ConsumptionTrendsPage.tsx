@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { trendApi, ConsumptionTrend } from '../services/trend';
+import { trendApi } from '../services/trend';
 import { useAuthStore } from '../stores/auth';
 
 export default function ConsumptionTrendsPage() {

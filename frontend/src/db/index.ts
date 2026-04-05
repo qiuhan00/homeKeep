@@ -23,7 +23,7 @@ export interface LocalItem {
 export interface SyncQueueItem {
   id?: number;
   type: 'create' | 'update' | 'delete';
-  entity: 'item' | 'location';
+  entity: 'item' | 'location' | 'family' | 'purchase';
   entityId?: number;
   data: any;
   timestamp: string;

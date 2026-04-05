@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { itemApi } from '../services/item';
+import { familyApi } from '../services/family';
 import { useAuthStore } from '../stores/auth';
+import { usePermission } from '../hooks/usePermission';
 import type { Item } from '../types';
 
 interface ShoppingItem extends Item {
@@ -20,6 +22,15 @@ export default function ShoppingListPage() {
   const [copied, setCopied] = useState(false);
   const [needsInputs, setNeedsInputs] = useState<Record<number, string>>({});
   const [toast, setToast] = useState('');
+
+  // 获取家庭列表用于权限检查
+  const { data: families = [] } = useQuery({
+    queryKey: ['families'],
+    queryFn: familyApi.getAll,
+  });
+
+  const currentFamily = families.find(f => f.id === currentFamilyId);
+  const { canEdit } = usePermission(currentFamily);
 
   const { data: lowStockItems = [] } = useQuery({
     queryKey: ['lowStock', currentFamilyId],
@@ -50,7 +61,7 @@ export default function ShoppingListPage() {
     }
     acc[category].push(item);
     return acc;
-  }, {} as Record<string, ShoppingItem[]>);
+  }, {} as Record<string, LocalShoppingItem[]>);
 
   // 调整数量
   const adjustMutation = useMutation({
@@ -143,7 +154,7 @@ export default function ShoppingListPage() {
             共 {shoppingItems.length} 件物品，已选 {checkedItems.size} 件
           </span>
           <div className="flex gap-2">
-            {checkedItems.size > 0 && (() => {
+            {checkedItems.size > 0 && canEdit && (() => {
               const selectedItems = shoppingItems.filter(i => checkedItems.has(i.id));
               const hasValidNeeds = selectedItems.some(item => (parseInt(item.needsInput) || 0) > 0);
               return (
@@ -237,7 +248,7 @@ export default function ShoppingListPage() {
                           const newVal = Math.max(0, current - 1);
                           setNeedsInputs(prev => ({ ...prev, [item.id]: String(newVal) }));
                         }}
-                        disabled={adjustMutation.isPending}
+                        disabled={!canEdit || adjustMutation.isPending}
                         className="w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 disabled:opacity-50 text-sm font-bold flex items-center justify-center"
                       >
                         -
@@ -252,6 +263,7 @@ export default function ShoppingListPage() {
                         onClick={(e) => e.stopPropagation()}
                         className="w-12 h-6 text-center text-sm border border-gray-200 rounded"
                         min={0}
+                        disabled={!canEdit}
                       />
                       <button
                         onClick={(e) => {
@@ -260,32 +272,34 @@ export default function ShoppingListPage() {
                           const newVal = current + 1;
                           setNeedsInputs(prev => ({ ...prev, [item.id]: String(newVal) }));
                         }}
-                        disabled={adjustMutation.isPending}
+                        disabled={!canEdit || adjustMutation.isPending}
                         className="w-6 h-6 rounded-full bg-primary hover:bg-primary-600 text-white disabled:opacity-50 text-sm font-bold flex items-center justify-center"
                       >
                         +
                       </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const needs = parseInt(item.needsInput) || 0;
-                          if (needs <= 0) {
-                            setToast('购买数量不能为0');
-                            setTimeout(() => setToast(''), 2000);
-                            return;
-                          }
-                          adjustMutation.mutate({ itemId: item.id, delta: needs });
-                          setCheckedItems(prev => {
-                            const newSet = new Set(prev);
-                            newSet.delete(item.id);
-                            return newSet;
-                          });
-                        }}
-                        disabled={adjustMutation.isPending}
-                        className="btn-primary text-xs py-1 px-2 ml-1"
-                      >
-                        已购
-                      </button>
+                      {canEdit && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const needs = parseInt(item.needsInput) || 0;
+                            if (needs <= 0) {
+                              setToast('购买数量不能为0');
+                              setTimeout(() => setToast(''), 2000);
+                              return;
+                            }
+                            adjustMutation.mutate({ itemId: item.id, delta: needs });
+                            setCheckedItems(prev => {
+                              const newSet = new Set(prev);
+                              newSet.delete(item.id);
+                              return newSet;
+                            });
+                          }}
+                          disabled={adjustMutation.isPending}
+                          className="btn-primary text-xs py-1 px-2 ml-1"
+                        >
+                          已购
+                        </button>
+                      )}
                     </div>
                   </div>
                 );

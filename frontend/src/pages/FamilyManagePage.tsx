@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { familyApi } from '../services/family';
 import { useAuthStore } from '../stores/auth';
+import { usePermission } from '../hooks/usePermission';
 import ConfirmModal from '../components/ConfirmModal';
 import Modal from '../components/Modal';
 import type { Family, FamilyMember, MemberPermissions } from '../types';
@@ -26,6 +27,10 @@ export default function FamilyManagePage() {
     queryKey: ['families'],
     queryFn: familyApi.getAll,
   });
+
+  // 当前家庭的权限
+  const currentFamily = families.find(f => f.id === currentFamilyId);
+  const { canInvite } = usePermission(currentFamily);
 
   const createMutation = useMutation({
     mutationFn: (name: string) => familyApi.create(name),
@@ -123,7 +128,6 @@ export default function FamilyManagePage() {
     navigator.clipboard.writeText(code);
   };
 
-  const currentFamily = families.find(f => f.id === currentFamilyId);
   const isOwner = currentFamily?.members?.some(m => m.role === 'OWNER' && m.userId === user?.id) ?? false;
   const currentMember = currentFamily?.members?.find(m => m.userId === user?.id);
 
@@ -138,12 +142,14 @@ export default function FamilyManagePage() {
           >
             加入
           </button>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="btn-primary text-xs sm:text-sm"
-          >
-            创建
-          </button>
+          {canInvite && (
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="btn-primary text-xs sm:text-sm"
+            >
+              创建
+            </button>
+          )}
         </div>
       </div>
 

@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { familyApi } from '../services/family';
 import { itemApi } from '../services/item';
 import { useAuthStore } from '../stores/auth';
-import type { Item, DashboardStats } from '../types';
+import type { Item } from '../types';
 
 export default function HomePage() {
   const { user, currentFamilyId, setCurrentFamilyId } = useAuthStore();
