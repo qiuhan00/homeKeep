@@ -37,10 +37,22 @@ export interface MemberPermissions {
 
 export interface Location {
   id: number;
+  familyId?: number | null;  // null 表示系统默认位置
   name: string;
   parentId?: number;
   path: string;
+  isSystem?: boolean;  // 是否为系统默认位置
   children?: Location[];
+}
+
+export interface Category {
+  id: number;
+  familyId?: number | null;  // null 表示系统默认分类
+  name: string;
+  parentId?: number;
+  path: string;
+  sortOrder?: number;
+  isSystem?: boolean;  // 是否为系统默认分类
 }
 
 export interface Item {

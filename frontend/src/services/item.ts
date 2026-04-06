@@ -1,5 +1,5 @@
 import api from './api';
-import type { Item, Location, ApiResponse } from '../types';
+import type { Item, Location, Category, ApiResponse } from '../types';
 
 export const itemApi = {
   create: async (familyId: number, data: Partial<Item>): Promise<Item> => {
@@ -87,5 +87,31 @@ export const locationApi = {
 
   delete: async (familyId: number, locationId: number): Promise<void> => {
     await api.delete(`/families/${familyId}/locations/${locationId}`);
+  },
+};
+
+export const categoryApi = {
+  create: async (familyId: number, data: { name: string; parentId?: number; sortOrder?: number }): Promise<Category> => {
+    const response = await api.post<ApiResponse<Category>>(`/families/${familyId}/categories`, data);
+    return response.data.data;
+  },
+
+  getAll: async (familyId: number): Promise<Category[]> => {
+    const response = await api.get<ApiResponse<Category[]>>(`/families/${familyId}/categories`);
+    return response.data.data;
+  },
+
+  getRoot: async (familyId: number): Promise<Category[]> => {
+    const response = await api.get<ApiResponse<Category[]>>(`/families/${familyId}/categories/root`);
+    return response.data.data;
+  },
+
+  getChildren: async (familyId: number, parentId: number): Promise<Category[]> => {
+    const response = await api.get<ApiResponse<Category[]>>(`/families/${familyId}/categories/${parentId}/children`);
+    return response.data.data;
+  },
+
+  delete: async (familyId: number, categoryId: number): Promise<void> => {
+    await api.delete(`/families/${familyId}/categories/${categoryId}`);
   },
 };

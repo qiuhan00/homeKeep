@@ -2,12 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
+
 :root {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  line-height: 1.5;
+  font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  line-height: 1.6;
   font-weight: 400;
-  color: #5C4033;              /* 深棕色文字 */
-  background-color: #FBF7F2;   /* 暖白背景 */
+  color: #3D3D3D;
+  background-color: #FAFAF8;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -25,91 +27,205 @@ body {
   box-sizing: border-box;
 }
 
+/* Design System Colors - Warm Neutrals with Orange Accent */
+:root {
+  --color-bg: #FAFAF8;
+  --color-bg-warm: #F7F4F0;
+  --color-surface: #FFFFFF;
+  --color-border: #EAE6E1;
+  --color-border-light: #F0EDE9;
+
+  --color-text-primary: #2D2A26;
+  --color-text-secondary: #6B6560;
+  --color-text-tertiary: #9C9690;
+
+  --color-accent: #D4662B;
+  --color-accent-light: #F5E6DC;
+  --color-accent-hover: #B8531F;
+
+  --color-danger: #C74D3D;
+  --color-danger-light: #FBEAE7;
+
+  --color-success: #3D8C5E;
+  --color-warning: #C98B2B;
+}
+
 @layer components {
   .btn-primary {
-    @apply bg-[#E07B39] text-white px-4 py-2 rounded-[10px] font-medium transition-all duration-200;
-    @apply hover:bg-[#C4622A];
-    @apply focus:outline-none focus:ring-2 focus:ring-[#F8A86A] focus:ring-offset-2;
-    @apply text-sm sm:text-base;
+    @apply px-5 py-2.5 rounded-xl font-medium text-white transition-all duration-200;
+    background-color: var(--color-accent);
   }
 
   .btn-primary:hover {
-    box-shadow: 0 4px 12px rgba(224, 123, 57, 0.25);
+    background-color: var(--color-accent-hover);
+    box-shadow: 0 4px 12px rgba(212, 102, 43, 0.2);
+  }
+
+  .btn-primary:active {
+    transform: scale(0.98);
   }
 
   .btn-secondary {
-    @apply text-[#9E4C21] px-4 py-2 rounded-[10px] font-medium transition-all duration-200;
-    background-color: #FFECD4;
-    @apply hover:bg-[#FFE0BC] hover:text-[#783919];
-    @apply focus:outline-none focus:ring-2 focus:ring-[#FFD4A3] focus:ring-offset-2;
-    @apply text-sm sm:text-base;
+    @apply px-5 py-2.5 rounded-xl font-medium transition-all duration-200;
+    background-color: var(--color-accent-light);
+    color: var(--color-accent);
   }
 
-  .btn-danger {
-    background-color: #C75D4A;
-    @apply text-white px-4 py-2 rounded-[10px] font-medium transition-colors;
-    @apply hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2;
-    @apply text-sm sm:text-base;
+  .btn-secondary:hover {
+    background-color: #EFE0D5;
+  }
+
+  .btn-ghost {
+    @apply px-4 py-2 rounded-xl font-medium transition-all duration-200;
+    color: var(--color-text-primary);
+    background-color: #E8E4DF;
+    border: 1px solid #D4CFC9;
+  }
+
+  .btn-ghost:hover {
+    background-color: #DED9D4;
   }
 
   .card {
-    @apply bg-white rounded-[16px] p-3 sm:p-4;
-    box-shadow: 0 2px 12px rgba(224, 123, 57, 0.15);
-    @apply border;
-    border-color: #FDEDD8;
+    @apply rounded-2xl p-5;
+    background-color: var(--color-surface);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.03);
+    border: 1px solid var(--color-border-light);
+  }
+
+  .card-hover {
+    @apply transition-all duration-200;
+  }
+
+  .card-hover:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    transform: translateY(-1px);
   }
 
   .input {
-    @apply w-full px-3 py-2 rounded-[10px] bg-white;
-    border: 1px solid #FFECD4;
-    @apply focus:outline-none focus:ring-2 focus:ring-[#FAC78E] focus:border-[#F8A86A];
-    @apply text-sm sm:text-base text-gray-700 placeholder-gray-400;
+    @apply w-full px-4 py-3 rounded-xl transition-all duration-200;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+  }
+
+  .input::placeholder {
+    color: var(--color-text-tertiary);
+  }
+
+  .input:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px var(--color-accent-light);
+  }
+
+  .input-bg-warm {
+    background-color: var(--color-bg-warm);
+    border-color: transparent;
+  }
+
+  .input-bg-warm:focus {
+    background-color: var(--color-surface);
+    border-color: var(--color-accent);
   }
 
   .label {
-    @apply block text-sm font-medium mb-1;
-    color: #9E4C21;
+    @apply block text-sm font-medium mb-1.5;
+    color: var(--color-text-secondary);
+  }
+
+  .chip {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium transition-all duration-200;
+  }
+
+  .chip-default {
+    background-color: var(--color-bg-warm);
+    color: var(--color-text-secondary);
+  }
+
+  .chip-accent {
+    background-color: var(--color-accent-light);
+    color: var(--color-accent);
+  }
+
+  .chip-danger {
+    background-color: var(--color-danger-light);
+    color: var(--color-danger);
   }
 }
 
-/* 暖色滚动条 */
+/* Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #FEF5EB;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #FCDAB5;
-  border-radius: 4px;
+  background: var(--color-border);
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #F8A86A;
+  background: #CBC5BE;
 }
+
+/* Selection */
+::selection {
+  background-color: var(--color-accent-light);
+  color: var(--color-accent);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.2s ease-out forwards;
+}
+
+/* Stagger children */
+.stagger-children > * {
+  opacity: 0;
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 50ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 100ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 150ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 200ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 250ms; }
+.stagger-children > *:nth-child(7) { animation-delay: 300ms; }
+.stagger-children > *:nth-child(8) { animation-delay: 350ms; }
 
 /* Mobile optimizations */
 @media (max-width: 640px) {
   .btn-primary,
   .btn-secondary,
-  .btn-danger {
-    @apply py-2 px-3;
+  .btn-ghost {
+    @apply py-2 px-4;
   }
 
   .card {
-    @apply p-3;
+    @apply p-4 rounded-xl;
   }
 
   .input {
-    @apply py-2;
+    @apply py-2.5;
   }
-}
-
-/* 暖色选中效果 */
-::selection {
-  background-color: #FFE0BC;
-  color: #5C4033;
 }

@@ -4,6 +4,7 @@ import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister'
 import App from './App'
 import './index.css'
+import { setQueryClient } from './stores/auth'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -18,6 +19,9 @@ const queryClient = new QueryClient({
     },
   },
 })
+
+// 注册 queryClient 到 authStore，以便 logout 时清除缓存
+setQueryClient(queryClient);
 
 // 持久化存储器 - 使用 localStorage
 const persister = createSyncStoragePersister({

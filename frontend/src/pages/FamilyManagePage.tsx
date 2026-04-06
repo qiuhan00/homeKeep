@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { familyApi } from '../services/family';
 import { useAuthStore } from '../stores/auth';
-import { usePermission } from '../hooks/usePermission';
 import ConfirmModal from '../components/ConfirmModal';
 import Modal from '../components/Modal';
 import type { Family, FamilyMember, MemberPermissions } from '../types';
@@ -30,7 +29,6 @@ export default function FamilyManagePage() {
 
   // 当前家庭的权限
   const currentFamily = families.find(f => f.id === currentFamilyId);
-  const { canInvite } = usePermission(currentFamily);
 
   const createMutation = useMutation({
     mutationFn: (name: string) => familyApi.create(name),
@@ -142,14 +140,15 @@ export default function FamilyManagePage() {
           >
             加入
           </button>
-          {canInvite && (
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="btn-primary text-xs sm:text-sm"
-            >
-              创建
-            </button>
-          )}
+          <button
+            onClick={() => {
+              setFamilyName('');
+              setShowCreateModal(true);
+            }}
+            className="btn-primary text-xs sm:text-sm"
+          >
+            创建
+          </button>
         </div>
       </div>
 
@@ -162,9 +161,35 @@ export default function FamilyManagePage() {
           ))}
         </div>
       ) : families.length === 0 ? (
-        <div className="text-center py-8 sm:py-12 text-gray-500">
-          <p className="mb-3 sm:mb-4 text-sm">您还没有加入任何家庭</p>
-          <p className="text-xs sm:text-sm">创建新家庭或使用邀请码加入已有家庭</p>
+        <div className="text-center py-12 sm:py-16">
+          <div className="w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center" style={{ backgroundColor: 'var(--color-bg-warm)' }}>
+            <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-tertiary)" strokeWidth="1.5">
+              <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+              <path d="M9 22V12h6v10"/>
+            </svg>
+          </div>
+          <h3 className="text-lg font-medium mb-2" style={{ color: 'var(--color-text-primary)' }}>还没有加入任何家庭</h3>
+          <p className="text-sm mb-6" style={{ color: 'var(--color-text-secondary)' }}>创建新家庭或使用邀请码加入已有家庭</p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <button
+              onClick={() => {
+                setFamilyName('');
+                setShowCreateModal(true);
+              }}
+              className="btn-primary px-6 py-3"
+            >
+              创建家庭
+            </button>
+            <button
+              onClick={() => {
+                setInviteCode('');
+                setShowJoinModal(true);
+              }}
+              className="btn-ghost px-6 py-3"
+            >
+              加入已有
+            </button>
+          </div>
         </div>
       ) : (
         <div className="space-y-3 sm:space-y-4">
