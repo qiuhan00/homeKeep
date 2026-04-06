@@ -36,9 +36,16 @@
 - **物品分布图** - 饼图展示各位置物品分布
 
 ### 物品分类
-- **分类管理** - 预定义分类（厨房、洗漱、食品、日用、药品、护肤、其他）
+- **分类管理** - 预定义系统分类（厨房、洗漱、食品等，所有家庭共享）
+- **家庭私有分类** - 家庭成员可创建私有分类，仅本家庭可见
+- **位置管理** - 系统默认位置 + 家庭私有位置
 - **标签系统** - 自定义标签，方便筛选和查找
 - **搜索功能** - 支持按名称、描述、分类、标签搜索
+
+### 权限管理
+- **角色区分** - 所有者（👑）和普通成员
+- **权限细化** - 可编辑物品、可邀请成员、可移除成员
+- **灵活配置** - 所有者可为成员设置不同权限级别
 
 ### 用户体验
 - **响应式设计** - 桌面端/移动端均可使用
@@ -211,6 +218,15 @@ docker-compose up -d
 | GET | /api/families/{familyId}/locations/root | 获取顶层位置 |
 | GET | /api/families/{familyId}/locations/{id}/children | 获取子位置 |
 | DELETE | /api/families/{familyId}/locations/{id} | 删除位置 |
+
+### 分类
+| 方法 | 路径 | 说明 |
+|:---|:---|:---|
+| POST | /api/families/{familyId}/categories | 创建分类 |
+| GET | /api/families/{familyId}/categories | 获取分类列表 |
+| GET | /api/families/{familyId}/categories/root | 获取根分类 |
+| GET | /api/families/{familyId}/categories/{parentId}/children | 获取子分类 |
+| DELETE | /api/families/{familyId}/categories/{categoryId} | 删除分类 |
 
 ### 采购记录
 | 方法 | 路径 | 说明 |
