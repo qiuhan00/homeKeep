@@ -49,7 +49,7 @@ export default function RegisterPage() {
           <p className="text-gray-500 mt-2">家庭物品管理助手</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="card space-y-4">
+        <form onSubmit={handleSubmit} className="card space-y-4" autoComplete="off">
           <div>
             <label className="label">手机号</label>
             <input
@@ -59,6 +59,7 @@ export default function RegisterPage() {
               className="input"
               placeholder="请输入手机号"
               required
+              autoComplete="off"
             />
           </div>
 
@@ -70,6 +71,7 @@ export default function RegisterPage() {
               onChange={(e) => setNickname(e.target.value)}
               className="input"
               placeholder="请输入昵称"
+              autoComplete="off"
             />
           </div>
 
@@ -82,6 +84,7 @@ export default function RegisterPage() {
               className="input"
               placeholder="请输入密码（至少6位）"
               required
+              autoComplete="new-password"
             />
           </div>
 
@@ -94,6 +97,7 @@ export default function RegisterPage() {
               className="input"
               placeholder="请再次输入密码"
               required
+              autoComplete="new-password"
             />
           </div>
 

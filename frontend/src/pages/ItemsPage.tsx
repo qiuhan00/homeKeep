@@ -402,11 +402,11 @@ export default function ItemsPage() {
 
                       {/* 状态标签 */}
                       {item.usedUp ? (
-                        <span className="absolute top-3 right-3 text-xs px-2 py-1 rounded-full font-medium bg-[#F7F4F0] text-[#6B6560]">
+                        <span className="absolute top-3 right-3 z-10 text-xs px-2 py-1 rounded-full font-medium bg-[#F7F4F0] text-[#6B6560]">
                           已用完
                         </span>
                       ) : item.isAlert ? (
-                        <span className="absolute top-3 right-3 text-xs px-2 py-1 rounded-full font-medium bg-[#FBEAE7] text-[#C74D3D]">
+                        <span className="absolute top-3 right-3 z-10 text-xs px-2 py-1 rounded-full font-medium bg-[#FBEAE7] text-[#C74D3D]">
                           需补充
                         </span>
                       ) : null}
@@ -414,7 +414,7 @@ export default function ItemsPage() {
                       {/* 图片 */}
                       <Link to={`/items/${item.id}`} className="block">
                         <div
-                          className="h-28 rounded-xl mb-3 flex items-center justify-center overflow-hidden"
+                          className="h-28 rounded-xl mb-3 flex items-center justify-center overflow-hidden relative"
                           style={{ backgroundColor: '#F7F4F0' }}
                         >
                           {item.coverImageUrl ? (
@@ -434,9 +434,9 @@ export default function ItemsPage() {
                             expiry.setHours(0, 0, 0, 0);
                             const diffDays = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
                             if (diffDays < 0) {
-                              return <span className="absolute bottom-2 right-2 text-xs px-2 py-0.5 rounded-full bg-[#C74D3D] text-white">已过期</span>;
+                              return <span className="absolute top-2 left-2 text-xs px-2 py-0.5 rounded-full bg-[#C74D3D] text-white">已过期</span>;
                             } else if (diffDays <= 7) {
-                              return <span className="absolute bottom-2 right-2 text-xs px-2 py-0.5 rounded-full bg-[#C98B2B] text-white">{diffDays}天过期</span>;
+                              return <span className="absolute top-2 left-2 text-xs px-2 py-0.5 rounded-full bg-[#C98B2B] text-white">{diffDays}天过期</span>;
                             }
                             return null;
                           })()}

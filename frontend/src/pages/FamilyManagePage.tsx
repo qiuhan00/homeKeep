@@ -16,6 +16,7 @@ export default function FamilyManagePage() {
   const [editingPermissions, setEditingPermissions] = useState<FamilyMember | null>(null);
   const [familyName, setFamilyName] = useState('');
   const [inviteCode, setInviteCode] = useState('');
+  const [toast, setToast] = useState('');
 
   // Confirmation modals
   const [confirmDelete, setConfirmDelete] = useState<{ family: Family } | null>(null);
@@ -124,6 +125,8 @@ export default function FamilyManagePage() {
 
   const copyInviteCode = (code: string) => {
     navigator.clipboard.writeText(code);
+    setToast('邀请码已复制');
+    setTimeout(() => setToast(''), 2000);
   };
 
   const isOwner = currentFamily?.members?.some(m => m.role === 'OWNER' && m.userId === user?.id) ?? false;
@@ -131,6 +134,11 @@ export default function FamilyManagePage() {
 
   return (
     <div>
+      {toast && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 bg-[#D4662B] text-white px-4 py-2 rounded-lg shadow-lg z-50 text-sm">
+          {toast}
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
         <h2 className="text-lg sm:text-xl lg:text-2xl font-bold">家庭管理</h2>
         <div className="flex gap-2">
@@ -206,6 +214,10 @@ export default function FamilyManagePage() {
               }}
               onViewMember={setViewingMember}
               onDelete={() => setConfirmDelete({ family })}
+              onLeave={() => {
+                setCurrentFamilyId(family.id);
+                setConfirmLeave(true);
+              }}
               currentUserId={user?.id}
             />
           ))}
@@ -344,6 +356,7 @@ export default function FamilyManagePage() {
         <MemberDetailModal
           member={viewingMember}
           isOwner={isOwner}
+          currentUserId={user?.id}
           canRemoveMembers={currentMember?.canRemoveMembers || false}
           onClose={() => setViewingMember(null)}
           onEditPermissions={() => {
@@ -476,6 +489,7 @@ function FamilyCard({
   onEdit,
   onViewMember,
   onDelete,
+  onLeave,
   currentUserId,
 }: {
   family: Family;
@@ -485,9 +499,11 @@ function FamilyCard({
   onEdit: () => void;
   onViewMember: (member: FamilyMember) => void;
   onDelete: () => void;
+  onLeave: () => void;
   currentUserId?: number;
 }) {
   const isOwner = family.members?.some(m => m.role === 'OWNER' && m.userId === currentUserId);
+  const isMember = family.members?.some(m => m.userId === currentUserId);
 
   return (
     <div
@@ -556,7 +572,7 @@ function FamilyCard({
         </div>
       )}
 
-      {/* Delete button at bottom right */}
+      {/* Delete/Leave button at bottom right */}
       {isOwner && (
         <button
           onClick={(e) => {
@@ -569,6 +585,18 @@ function FamilyCard({
           🗑️ 删除
         </button>
       )}
+      {!isOwner && isMember && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onLeave();
+          }}
+          className="absolute bottom-3 right-3 text-gray-400 hover:text-[#D4662B] transition-colors text-xs sm:text-sm"
+          title="退出家庭"
+        >
+          🚪 退出
+        </button>
+      )}
     </div>
   );
 }
@@ -576,6 +604,7 @@ function FamilyCard({
 function MemberDetailModal({
   member,
   isOwner,
+  currentUserId,
   canRemoveMembers,
   onClose,
   onEditPermissions,
@@ -584,6 +613,7 @@ function MemberDetailModal({
 }: {
   member: FamilyMember;
   isOwner: boolean;
+  currentUserId?: number;
   canRemoveMembers: boolean;
   onClose: () => void;
   onEditPermissions: () => void;
@@ -656,7 +686,7 @@ function MemberDetailModal({
               </button>
             </>
           )}
-          {!isOwner && member.role !== 'OWNER' && !canRemoveMembers && (
+          {member.userId === currentUserId && (
             <button onClick={onLeave} className="btn-secondary w-full">
               退出家庭
             </button>
